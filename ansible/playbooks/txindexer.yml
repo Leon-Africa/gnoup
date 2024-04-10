@@ -9,7 +9,7 @@
   vars:
     ansible_connection: aws_ssm
     ansible_aws_ssm_profile: default
-    ansible_aws_ssm_bucket_name: gnoland-aws-ssm-connection-playbook
+    ansible_aws_ssm_bucket_name: txindexer-aws-ssm-connection-playbook
     ansible_aws_ssm_region: "eu-west-1"
   tasks:
     - name: pinging
