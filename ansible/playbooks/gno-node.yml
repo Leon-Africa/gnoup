@@ -1,5 +1,5 @@
-- name: gnoland-setup
-  hosts: gnoland-node
+- name: gno-node-setup
+  hosts: gno-node
   roles:
      - role: gantsign.golang
        golang_gopath: '$HOME/workspace-go'
@@ -9,7 +9,7 @@
   vars:
     ansible_connection: aws_ssm
     ansible_aws_ssm_profile: default
-    ansible_aws_ssm_bucket_name: gnoland-aws-ssm-connection-playbook
+    ansible_aws_ssm_bucket_name: gno-node-aws-ssm-connection-playbook
     ansible_aws_ssm_region: "eu-west-1"
   tasks:
     - name: pinging
