@@ -1,0 +1,9 @@
+[submodule "gno"]
+	path = gno
+	url = https://github.com/gnolang/gno.git
+[submodule "tx-indexer"]
+	path = tx-indexer
+	url = https://github.com/gnolang/tx-indexer.git
+[submodule "supernova"]
+	path = supernova
+	url = https://github.com/gnolang/supernova
