@@ -1,8 +1,5 @@
 - name: gno-node-setup
-  hosts: gno-node
-  roles:
-     - role: gantsign.golang
-       golang_gopath: '$HOME/workspace-go'
+  hosts: all
   become: true
   remote_user: ubuntu
   gather_facts: false
@@ -15,12 +12,18 @@
     - name: pinging
       ping:
 
+    - name: Install Git
+      shell: |
+        sudo yum update -y
+        sudo yum install git -y
+      register: result_git_install
+
     - name: Clone Gno
       shell: |
         cd ../../../../home/
         git clone https://github.com/gnolang/gno.git
-      register: result_clone_gno
- 
+      register: result_clone_gn 
+
     - name: Confirm Go instalation
       shell: |
         go version
@@ -46,5 +49,49 @@
       shell: |
         pwd
         cd gno/gno.land
-        gnoland start
+        nohup gnoland start
       register: result_start_node
+
+    - name: Clone TxIndexer
+      shell: |
+        cd ../../../../home/
+        git clone git clone https://github.com/gnolang/tx-indexer.git
+      register: result_clone_supernova
+ 
+    - name: Confirm Go instalation
+      shell: |
+        go version
+      register: result_go_version
+    
+    - name: Build txindexer
+      shell: |
+        cd tx-indexer/
+        make build
+      register: result_txindexer_build
+
+    - name: Run txindexer
+      shell: |
+       nohupecho usegrouvars
+      register: result_txindexer
+
+    - name: Clone SuperNova
+      shell: |
+        cd ../../../../home/
+        git clone https://github.com/gnolang/supernova.git
+      register: result_clone_supernova
+ 
+    - name: Confirm Go instalation
+      shell: |
+        go version
+      register: result_go_version
+    
+    - name: Build SuperNova
+      shell: |
+        cd supernova/
+        make build
+      register: result_supernova_build
+
+    - name: Run SuperNova
+      shell: |
+       nohup echo usegrouvars
+      register: result_supernova
