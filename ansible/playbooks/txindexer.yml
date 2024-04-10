@@ -1,0 +1,38 @@
+- name: txindexer-setup
+  hosts: txindexer
+  roles:
+     - role: gantsign.golang
+       golang_gopath: '$HOME/workspace-go'
+  become: true
+  remote_user: ubuntu
+  gather_facts: false
+  vars:
+    ansible_connection: aws_ssm
+    ansible_aws_ssm_profile: default
+    ansible_aws_ssm_bucket_name: gnoland-aws-ssm-connection-playbook
+    ansible_aws_ssm_region: "eu-west-1"
+  tasks:
+    - name: pinging
+      ping:
+
+    - name: Clone TxIndexer
+      shell: |
+        cd ../../../../home/
+        git clone git clone https://github.com/gnolang/tx-indexer.git
+      register: result_clone_supernova
+ 
+    - name: Confirm Go instalation
+      shell: |
+        go version
+      register: result_go_version
+    
+    - name: Build txindexer
+      shell: |
+        cd tx-indexer/
+        make build
+      register: result_txindexer_build
+
+    - name: Run txindexer
+      shell: |
+       echo usegrouvars
+      register: result_txindexer
