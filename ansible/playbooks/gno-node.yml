@@ -1,5 +1,13 @@
 - name: gno-node-setup
   hosts: all
+  # vars:
+  #   ansible_shell_executable: /bin/bash
+  roles:
+    - role: geerlingguy.go 
+      go_version: "1.22.2"
+      go_platform: linux
+      go_arch: amd64
+      go_checksum: '5901c52b7a78002aeff14a21f93e0f064f74ce1360fce51c6ee68cd471216a17'
   become: true
   remote_user: ubuntu
   gather_facts: false
@@ -12,86 +20,174 @@
     - name: pinging
       ping:
 
+    - name: Go
+      shell: |
+        /usr/local/go/bin/go version
+      register: result_git_install
+
     - name: Install Git
       shell: |
-        sudo yum update -y
-        sudo yum install git -y
+        sudo apt update
+        sudo apt install git-all
       register: result_git_install
+
+    - name: Install make
+      shell: |
+        sudo apt update
+        sudo apt-get install make
+      register: result_make_install
+
+    - name: Check if directory exists [gno]
+      stat:
+        path: /home/gno
+      register: dir_check_gno
 
     - name: Clone Gno
       shell: |
         cd ../../../../home/
         git clone https://github.com/gnolang/gno.git
+      when: not dir_check_gno.stat.exists
       register: result_clone_gn 
-
-    - name: Confirm Go instalation
-      shell: |
-        go version
-      register: result_go_version
     
     - name: Build & Install Gnovm
       shell: |
+        cd ../../../../home/
+        export GOPATH=/usr/local/go
+        export PATH=$GOPATH/bin:$PATH
         cd gno/gnovm
         make build
         make install
-        gno --help
-      register: result_gnovm
+      register: result_gnovm_install
+
 
     - name: Build & Install Gnoland
       shell: |
-        pwd
+        cd ../../../../home/
+        export GOPATH=/usr/local/go
+        export PATH=$GOPATH/bin:$PATH
         cd gno/gno.land
         make build
         make install
       register: result_gnoland
 
+    - name: Create log directories
+      shell: |
+        cd ../../../../home/
+        mkdir logs
+        cd logs
+        mkdir node tx-indexer supernova
+        touch node/node.log
+        touch tx-indexer/indexer.log
+        touch supernova/supernova.log
+      register: result_logs
+
+    - name: Install expect
+      shell: |
+        sudo apt-get update
+        sudo apt-get install expect
+      register: result_expect_install
+
+    - name: Transfer expect script to remote host
+      copy:
+        src: gnokey_expect_script.exp
+        dest: /home/gnokey_expect_script.exp
+        mode: 0755  
+
+    - name: Run gnokey with passphrase provided by expect
+      shell: |
+        cd ../../../../
+        ls -al
+        pwd
+        /home/gnokey_expect_script.exp > /home/keys/mnemonic.txt
+      register: result_key_generate
+      args:
+        executable: /bin/bash
+     
+    - name: List keys
+      shell: |
+        cd ../../../../home/
+        /usr/local/go/bin/gnokey list
+      register: result_start_node
+
+
+    - name: Get the mnemonic
+      set_fact:
+        mnemonic_phrase: "{{ result_key_generate.stdout | regex_search('(?s)\\*\\*IMPORTANT\\*\\*.*?\n\n(.*?)$').captures[0] }}"
+
     - name: Start Node
       shell: |
-        pwd
-        cd gno/gno.land
-        nohup gnoland start
+        cd ../../../../home/
+        /usr/local/go/bin/gnoland start >> /home/logs/node/node.log 2>&1 &
       register: result_start_node
+
+    - name: Check if directory exists [tx-indexer]
+      stat:
+        path: /home/tx-indexer
+      register: dir_check_indexer
 
     - name: Clone TxIndexer
       shell: |
         cd ../../../../home/
-        git clone git clone https://github.com/gnolang/tx-indexer.git
+        git clone https://github.com/gnolang/tx-indexer.git
+      when: not dir_check_indexer.stat.exists
       register: result_clone_supernova
- 
-    - name: Confirm Go instalation
-      shell: |
-        go version
-      register: result_go_version
     
     - name: Build txindexer
       shell: |
+        cd ../../../../home/
+        export GOPATH=/usr/local/go
+        export PATH=$GOPATH/bin:$PATH
         cd tx-indexer/
         make build
       register: result_txindexer_build
 
     - name: Run txindexer
       shell: |
-       nohupecho usegrouvars
+        cd ../../../../home/
+        export GOPATH=/usr/local/go
+        export PATH=$GOPATH/bin:$PATH
+        cd tx-indexer
+        ./build/tx-indexer start --remote http://127.0.0.1:26657 --db-path indexer-db >> /home/logs/tx-indexer/indexer.log 2>&1 &
       register: result_txindexer
 
+    - name: Check if directory exists [supernova]
+      stat:
+        path: /home/supernova
+      register: dir_check_supernova
+      
     - name: Clone SuperNova
       shell: |
         cd ../../../../home/
         git clone https://github.com/gnolang/supernova.git
+      when: not dir_check_supernova.stat.exists
       register: result_clone_supernova
- 
-    - name: Confirm Go instalation
-      shell: |
-        go version
-      register: result_go_version
     
     - name: Build SuperNova
       shell: |
+        cd ../../../../home/
+        export GOPATH=/usr/local/go
+        export PATH=$GOPATH/bin:$PATH
         cd supernova/
         make build
       register: result_supernova_build
 
-    - name: Run SuperNova
+    - name: Run SuperNova [using mnemonic]
+      shell: 
+        cmd: |
+          cd ../../../../home/
+          export GOPATH=/usr/local/go
+          export PATH=$GOPATH/bin:$PATH
+          cd supernova/
+          ./build/supernova -sub-accounts 5 -transactions 100 -url http://localhost:26657 -mnemonic '{{ mnemonic_phrase }}' -output result.json
+      args:
+        executable: /bin/bash
+
+    - name: npm
       shell: |
-       nohup echo usegrouvars
-      register: result_supernova
+        apt install npm
+      register: result_npm_install
+
+    - name: wscat
+      shell: |
+        npm install -g wscat
+      register: result_npm_install
