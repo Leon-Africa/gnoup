@@ -20,6 +20,11 @@
     - name: pinging
       ping:
 
+    - name: Transfer txtools to remote host
+      copy:
+        src: ../../txtools
+        dest: /home/
+
     - name: Go
       shell: |
         /usr/local/go/bin/go version
@@ -96,9 +101,10 @@
     - name: Run gnokey with passphrase provided by expect
       shell: |
         cd ../../../../
+        mkdir home/keys
         ls -al
         pwd
-        /home/gnokey_expect_script.exp > /home/keys/mnemonic.txt
+        /home/gnokey_expect_script.exp >> /home/keys/mnemonic.txt
       register: result_key_generate
       args:
         executable: /bin/bash
@@ -109,10 +115,21 @@
         /usr/local/go/bin/gnokey list
       register: result_start_node
 
+    - name: Transfer expect script to remote host
+      copy:
+        src: extract_mnemonic.sh 
+        dest: /home/extract_mnemonic.sh 
+        mode: 0755 
 
-    - name: Get the mnemonic
-      set_fact:
-        mnemonic_phrase: "{{ result_key_generate.stdout | regex_search('(?s)\\*\\*IMPORTANT\\*\\*.*?\n\n(.*?)$').captures[0] }}"
+    - name: Run the bash script
+      shell: | 
+        cd ../../../../
+        /home/extract_mnemonic.sh
+      register: mnemonic_result
+
+    - name: Print mnemonic phrase
+      debug:
+        msg: "Mnemonic phrase: {{ mnemonic_result }}"
 
     - name: Start Node
       shell: |
@@ -171,23 +188,21 @@
         make build
       register: result_supernova_build
 
+    # - name: Run SuperNova [using mnemonic]
+    #   shell: 
+    #     cmd: |
+    #       cd ../../../../home/
+    #       export GOPATH=/usr/local/go
+    #       export PATH=$GOPATH/bin:$PATH
+    #       cd supernova/
+    #       ./build/supernova -sub-accounts 5 -transactions 100 -url http://localhost:26657 -mnemonic '{{ mnemonic_result }}' -output result.json
+    #   args:
+    #     executable: /bin/bash
+
     - name: Run SuperNova [using mnemonic]
       shell: 
         cmd: |
-          cd ../../../../home/
-          export GOPATH=/usr/local/go
-          export PATH=$GOPATH/bin:$PATH
-          cd supernova/
-          ./build/supernova -sub-accounts 5 -transactions 100 -url http://localhost:26657 -mnemonic '{{ mnemonic_phrase }}' -output result.json
+         echo checking mnemonic - address $gnot load todo
+         echo '{{ mnemonic_result }}'
       args:
         executable: /bin/bash
-
-    - name: npm
-      shell: |
-        apt install npm
-      register: result_npm_install
-
-    - name: wscat
-      shell: |
-        npm install -g wscat
-      register: result_npm_install

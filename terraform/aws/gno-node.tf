@@ -129,7 +129,7 @@ resource "aws_iam_role_policy_attachment" "ec2-policy" {
 
 #Create the EC2 Instance
 resource "aws_instance" "gno-node" {
-  ami                         = "ami-0f007bf1d5c770c6e"
+  ami                         = "ami-0c1c30571d2dae5c9"
   instance_type               = "t2.medium"
   subnet_id                   = aws_subnet.gno-node-public.id
   availability_zone           = "eu-west-1a"
