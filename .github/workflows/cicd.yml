@@ -1,7 +1,7 @@
 name: linter
 on:
-  pull_request:
-    branches: ["main", "stable", "release/v*"]
+  push:
+    branches: ["main"]
 jobs:
   build:
     name: Ansible Lint 
