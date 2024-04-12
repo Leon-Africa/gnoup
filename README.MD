@@ -33,7 +33,7 @@ Apply the configuration to the infrastructure:
 
 ````cd ansible````
 
-````ansible-galaxy install -r requirements.yml```
+````ansible-galaxy install -r requirements.yml````
 
 ````AWS_PROFILE=default ansible-playbook -i inventory/aws_ec2.yml playbooks/gno-node.yml --flush-cache -vvv````
 
@@ -67,8 +67,13 @@ supernova [supernova.log]
 
 txtools [txtools.log]
 
-So if you want to get log data for the running gnoland node: ````tail -f logs/node/node.log````
+So if you want to get log data for the running gnoland node: 
 
+````tail -f logs/node/node.log````
+
+Txdata processed from ws indexer endpoint can be found at: 
+
+````tail -f logs/txtools/txtools.log````  corresponding code is in ````home/txtools/````
 
 # Clean up
 
