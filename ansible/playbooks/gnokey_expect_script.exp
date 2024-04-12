@@ -4,7 +4,7 @@
 set timeout 10
 
 # Run the gnokey command and expect for passphrase prompts
-spawn /usr/local/go/bin/gnokey add test_key_15
+spawn /usr/local/go/bin/gnokey add test_key
 
 # Expect the first passphrase prompt and send the passphrase
 expect "Enter a passphrase to encrypt your key to disk:"

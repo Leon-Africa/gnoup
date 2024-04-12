@@ -20,11 +20,6 @@
     - name: pinging
       ping:
 
-    - name: Transfer txtools to remote host
-      copy:
-        src: ../../txtools
-        dest: /home/
-
     - name: Go
       shell: |
         /usr/local/go/bin/go version
@@ -80,10 +75,11 @@
         cd ../../../../home/
         mkdir logs
         cd logs
-        mkdir node tx-indexer supernova
+        mkdir node tx-indexer supernova txtools
         touch node/node.log
         touch tx-indexer/indexer.log
         touch supernova/supernova.log
+        touch txtools/txtools.log
       register: result_logs
 
     - name: Install expect
@@ -206,3 +202,16 @@
          echo '{{ mnemonic_result }}'
       args:
         executable: /bin/bash
+
+    - name: Transfer txtools to remote host
+      copy:
+        src: ../../txtools
+        dest: /home/
+
+    - name: Start Txtools
+      shell: |
+        cd ../../../../home/txtools
+        export GOPATH=/usr/local/go
+        export PATH=$GOPATH/bin:$PATH
+        go run main.go >> /home/logs/txtools/txtools.log 2>&1 &
+      register: result_start_txtools
