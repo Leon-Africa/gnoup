@@ -6,10 +6,10 @@ Defacto setup for gnoland on local and cloud - next generation smart contract pl
 
 Please ensure the following prequesites is installed on your system:
 
- 1. Terraform
- 2. Ansible
- 3. aws-cli
- 4. ssm manager plugin
+ 1. Terraform: https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
+ 2. Ansible: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html
+ 3. aws-cli: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+ 4. ssm manager plugin: https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html
 
 # Deployment
 
@@ -32,6 +32,8 @@ Launch the infrastucture:
 Apply the configuration to the infrastructure:
 
 ````cd ansible````
+
+````ansible-galaxy install -r requirements.yml```
 
 ````AWS_PROFILE=default ansible-playbook -i inventory/aws_ec2.yml playbooks/gno-node.yml --flush-cache -vvv````
 
