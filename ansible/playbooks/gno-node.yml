@@ -37,6 +37,57 @@
         sudo apt-get install make
       register: result_make_install
 
+    - name: Install and Start Prometheus
+      shell: |
+        cd ../../../../
+        sudo useradd --system --no-create-home --shell /bin/false prometheus
+        wget https://github.com/prometheus/prometheus/releases/download/v2.51.1/prometheus-2.51.1.linux-amd64.tar.gz
+        tar -xvf prometheus-2.51.1.linux-amd64.tar.gz
+        sudo mkdir -p /data/ /etc/prometheus
+        cd prometheus-2.51.1.linux-amd64
+        sudo mv prometheus promtool /usr/local/bin/
+        sudo mv consoles/ console_libraries/ /etc/prometheus/
+        sudo mv prometheus.yml /etc/prometheus/prometheus.yml
+        sudo chown -R prometheus:prometheus /etc/prometheus/ /data/
+        cd ..
+        rm -rf prometheus*
+
+        sudo cat <<EOF > /etc/systemd/system/prometheus.service
+        [Unit]
+        Description=Prometheus
+        Wants=network-online.target
+        After=network-online.target
+
+        StartLimitIntervalSec=500
+        StartLimitBurst=5
+
+        [Service]
+        User=prometheus
+        Group=prometheus
+        Type=simple
+        Restart=on-failure
+        RestartSec=5s
+        ExecStart=/usr/local/bin/prometheus \
+          --config.file=/etc/prometheus/prometheus.yml \
+          --storage.tsdb.path=/data \
+          --web.console.templates=/etc/prometheus/consoles \
+          --web.console.libraries=/etc/prometheus/console_libraries \
+          --web.listen-address=0.0.0.0:9090 \
+          --web.enable-lifecycle
+
+        [Install]
+        WantedBy=multi-user.target
+        EOF
+
+        sudo systemctl enable prometheus
+        sudo systemctl start prometheus
+      register: result_prometheus_install
+
+    - name: Configure Prometheus
+      shell: |
+        echo todo
+      register: result_prometheus_configure
+      
     - name: Check if directory exists [gno]
       stat:
         path: /home/gno
@@ -94,6 +145,11 @@
         dest: /home/gnokey_expect_script.exp
         mode: 0755  
 
+    - name: Check if directory exists [keys]
+      stat:
+        path: /home/keys
+      register: dir_check_keys
+
     - name: Run gnokey with passphrase provided by expect
       shell: |
         cd ../../../../
@@ -101,6 +157,7 @@
         ls -al
         pwd
         /home/gnokey_expect_script.exp >> /home/keys/mnemonic.txt
+      when: not dir_check_keys.stat.exists
       register: result_key_generate
       args:
         executable: /bin/bash
@@ -123,9 +180,9 @@
         /home/extract_mnemonic.sh
       register: mnemonic_result
 
-    - name: Print mnemonic phrase
-      debug:
-        msg: "Mnemonic phrase: {{ mnemonic_result }}"
+    # - name: Print mnemonic phrase
+    #   debug:
+    #     msg: "Mnemonic phrase: {{ mnemonic_result }}"
 
     - name: Start Node
       shell: |
@@ -163,6 +220,20 @@
         ./build/tx-indexer start --remote http://127.0.0.1:26657 --db-path indexer-db >> /home/logs/tx-indexer/indexer.log 2>&1 &
       register: result_txindexer
 
+    - name: Transfer txtools to remote host
+      copy:
+        src: ../../txtools
+        dest: /home/
+
+    - name: Start Txtools
+      shell: |
+        cd ../../../../home/txtools
+        export GOPATH=/usr/local/go
+        export PATH=$GOPATH/bin:$PATH
+        go run main.go >> /home/logs/txtools/txtools.log 2>&1 &
+      register: result_start_txtools
+
+
     - name: Check if directory exists [supernova]
       stat:
         path: /home/supernova
@@ -184,34 +255,13 @@
         make build
       register: result_supernova_build
 
-    # - name: Run SuperNova [using mnemonic]
-    #   shell: 
-    #     cmd: |
-    #       cd ../../../../home/
-    #       export GOPATH=/usr/local/go
-    #       export PATH=$GOPATH/bin:$PATH
-    #       cd supernova/
-    #       ./build/supernova -sub-accounts 5 -transactions 100 -url http://localhost:26657 -mnemonic '{{ mnemonic_result }}' -output result.json
-    #   args:
-    #     executable: /bin/bash
-
     - name: Run SuperNova [using mnemonic]
       shell: 
         cmd: |
-         echo checking mnemonic - address $gnot load todo
-         echo '{{ mnemonic_result }}'
+          cd ../../../../home/
+          export GOPATH=/usr/local/go
+          export PATH=$GOPATH/bin:$PATH
+          cd supernova/
+          ./build/supernova -sub-accounts 5 -transactions 100 -url http://localhost:26657 -mnemonic "source bonus chronic canvas draft south burst lottery vacant surface solve popular case indicate oppose farm nothing bullet exhibit title speed wink action roast" -output result.json
       args:
         executable: /bin/bash
-
-    - name: Transfer txtools to remote host
-      copy:
-        src: ../../txtools
-        dest: /home/
-
-    - name: Start Txtools
-      shell: |
-        cd ../../../../home/txtools
-        export GOPATH=/usr/local/go
-        export PATH=$GOPATH/bin:$PATH
-        go run main.go >> /home/logs/txtools/txtools.log 2>&1 &
-      register: result_start_txtools
