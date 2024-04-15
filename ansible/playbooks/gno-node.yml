@@ -83,10 +83,15 @@
         sudo systemctl start prometheus
       register: result_prometheus_install
 
-    - name: Configure Prometheus
-      shell: |
-        echo todo
-      register: result_prometheus_configure
+    - name: Copy new prometheus.yml file
+      copy:
+        src: prometheus/prometheus.yml
+        dest: /etc/prometheus/prometheus.yml
+
+    - name: Restart Prometheus service
+      systemd:
+        name: prometheus
+        state: restarted
       
     - name: Check if directory exists [gno]
       stat:
@@ -141,7 +146,7 @@
 
     - name: Transfer expect script to remote host
       copy:
-        src: gnokey_expect_script.exp
+        src: keys/gnokey_expect_script.exp
         dest: /home/gnokey_expect_script.exp
         mode: 0755  
 
@@ -170,7 +175,7 @@
 
     - name: Transfer expect script to remote host
       copy:
-        src: extract_mnemonic.sh 
+        src: keys/extract_mnemonic.sh 
         dest: /home/extract_mnemonic.sh 
         mode: 0755 
 
@@ -265,3 +270,73 @@
           ./build/supernova -sub-accounts 5 -transactions 100 -url http://localhost:26657 -mnemonic "source bonus chronic canvas draft south burst lottery vacant surface solve popular case indicate oppose farm nothing bullet exhibit title speed wink action roast" -output result.json
       args:
         executable: /bin/bash
+
+    - name: Install and Start Node Exporter
+      shell: |
+        cd ../../../../
+        sudo useradd --system --no-create-home --shell /bin/false node_exporter
+        wget https://github.com/prometheus/node_exporter/releases/download/v1.3.1/node_exporter-1.3.1.linux-amd64.tar.gz
+        tar -xvf node_exporter-1.3.1.linux-amd64.tar.gz
+        sudo mv node_exporter-1.3.1.linux-amd64/node_exporter /usr/local/bin/
+        rm -rf node_exporter*
+        node_exporter --version
+
+        sudo cat <<EOF > /etc/systemd/system/node_exporter.service
+        [Unit]
+        Description=Node Exporter
+        Wants=network-online.target
+        After=network-online.target
+
+        StartLimitIntervalSec=500
+        StartLimitBurst=5
+
+        [Service]
+        User=node_exporter
+        Group=node_exporter
+        Type=simple
+        Restart=on-failure
+        RestartSec=5s
+        ExecStart=/usr/local/bin/node_exporter \
+        --collector.logind
+
+        [Install]
+        WantedBy=multi-user.target
+        EOF
+
+        sudo systemctl enable node_exporter
+        sudo systemctl start node_exporter
+        sudo systemctl status node_exporter
+      register: result_node_exporter_install
+
+    - name: Install Grafana
+      shell: |
+        cd ../../../../
+        sudo apt-get install -y apt-transport-https software-properties-common
+        wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+        echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+        sudo apt-get update
+        sudo apt-get -y install grafana
+        sudo systemctl enable grafana-server
+        sudo systemctl start grafana-server
+      register: result_grafana_install
+      
+    - name: Transfer datasource.yml to remote host
+      copy:
+        src:  grafana/datasource.yml
+        dest: /etc/grafana/provisioning/datasources/datasource.yml
+
+    - name: Transfer dashboard.json to remote host
+      copy:
+        src:  grafana/dashboard.json
+        dest: /etc/grafana/provisioning/dashboards
+
+    - name: Transfer dashboard.json to remote host
+      copy:
+        src:  grafana/15172_rev6.json
+        dest: /etc/grafana/provisioning/dashboards
+
+    - name: Stop and Start Grafana
+      shell: |
+        sudo systemctl stop grafana-server
+        sudo systemctl start grafana-server
+      register: result_grafana_sop_start

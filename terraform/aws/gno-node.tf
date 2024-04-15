@@ -12,6 +12,11 @@ provider "aws" {
   region = "eu-west-1"
 }
 
+# Fetch public IP address of the host machine using the ifconfig.me service
+data "http" "public_ip" {
+  url = "http://ifconfig.me"
+}
+
 #Create VPC
 resource "aws_vpc" "gno-node-vpc" {
   cidr_block           = "10.0.0.0/16"
@@ -84,6 +89,23 @@ resource "aws_security_group" "gno-node-sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  # Inbound rule to allow traffic on port 9090 from the public IP of the host machine [to access prometheus UI]
+  ingress {
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["${data.http.public_ip.body}/32"]
+  }
+
+  # Inbound rule to allow traffic on port 9090 from the public IP of the host machine [to access prometheus UI]
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["${data.http.public_ip.body}/32"]
+  }
+
 }
 
 #AWS SSM Role
@@ -137,8 +159,8 @@ resource "aws_instance" "gno-node" {
   associate_public_ip_address = true
 
   root_block_device {
-    volume_size = 7770
-    volume_type = "gp2"
+    volume_size           = 7770
+    volume_type           = "gp2"
     delete_on_termination = true
   }
 
@@ -158,7 +180,7 @@ resource "aws_ebs_volume" "gno-node" {
   availability_zone = "eu-west-1a"
   size              = "7770"
   type              = "gp2"
-  
+
   tags = {
     Name = "gno-node-volume"
   }
