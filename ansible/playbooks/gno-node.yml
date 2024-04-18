@@ -1,5 +1,8 @@
 - name: gno-node-setup
   hosts: all
+  vars_files:
+    - ../group_vars/txindexer.yml
+    - ../group_vars/supernova.yml
   # vars:
   #   ansible_shell_executable: /bin/bash
   roles:
@@ -222,7 +225,7 @@
         export GOPATH=/usr/local/go
         export PATH=$GOPATH/bin:$PATH
         cd tx-indexer
-        ./build/tx-indexer start --remote http://127.0.0.1:26657 --db-path indexer-db >> /home/logs/tx-indexer/indexer.log 2>&1 &
+        ./build/tx-indexer start --http-rate-limit {{ tx_indexer_http_rate_limit }} --listen-address {{ tx_indexer_listen_address }}  --log-level {{ tx_indexer_log_level }} --max-chunk-size {{ tx_indexer_max_chunk_size }} --max-slots {{ tx_indexer_max_slots }} --remote {{ tx_indexer_remote }}  --db-path {{ tx_indexer_db_path }} >> /home/logs/tx-indexer/indexer.log 2>&1 &
       register: result_txindexer
 
     - name: Transfer txtools to remote host
@@ -267,7 +270,7 @@
           export GOPATH=/usr/local/go
           export PATH=$GOPATH/bin:$PATH
           cd supernova/
-          ./build/supernova -sub-accounts 5 -transactions 100 -url http://localhost:26657 -mnemonic "source bonus chronic canvas draft south burst lottery vacant surface solve popular case indicate oppose farm nothing bullet exhibit title speed wink action roast" -output result.json
+          ./build/supernova -sub-accounts {{ supernova_sub_accounts }} -transactions {{ supernova_transactions }} -url {{ supernova_url }} -mnemonic "{{ supernova_mnemonic }}" -output {{ supernova_output }}
       args:
         executable: /bin/bash
 
