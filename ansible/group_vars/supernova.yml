@@ -1,0 +1,17 @@
+# group_vars/supernova.yml
+# https://github.com/gnolang/supernova
+
+# Number of sub-accounts
+supernova_sub_accounts: 5
+
+# Number of transactions
+supernova_transactions: 100
+
+# URL of the supernova server
+supernova_url: "http://localhost:26657"
+
+# Mnemonic for account
+supernova_mnemonic: "source bonus chronic canvas draft south burst lottery vacant surface solve popular case indicate oppose farm nothing bullet exhibit title speed wink action roast"
+
+# Output file
+supernova_output: "result.json"

@@ -1,0 +1,23 @@
+# group_vars/txindexer.yml
+# https://github.com/gnolang/tx-indexer
+
+# The absolute path for the indexer DB (embedded)
+tx_indexer_db_path: "indexer-db"
+
+# The maximum HTTP requests allowed per minute per IP, unlimited by default
+tx_indexer_http_rate_limit: "0"
+
+# The IP:PORT URL for the indexer JSON-RPC server
+tx_indexer_listen_address: "0.0.0.0:8546"
+
+# The log level for the CLI output
+tx_indexer_log_level: "info"
+
+# The range for fetching blockchain data by a single worker
+tx_indexer_max_chunk_size: "100"
+
+# The amount of slots (workers) the fetcher employs
+tx_indexer_max_slots: "100"
+
+# The JSON-RPC URL of the Gno chain
+tx_indexer_remote: "http://127.0.0.1:26657"
