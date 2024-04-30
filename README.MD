@@ -1,6 +1,6 @@
 # DRIFTING THROUH THE COSMOS
 
-Defacto setup for gnoland on local and cloud - next generation smart contract platform for social change.
+Defacto setup for gnoland on cloud - next generation smart contract platform for social change.
 
 # System Setup
 
