@@ -40,7 +40,7 @@ Note: set region as ````eu-west-1```` and output as ````json````
 
 Automatically deploy the infrastructure and configuration as code for a fully running gno node with metrics, dashboards and txtools to your account:
 
-Run ```` cd DRIFTING_THROUGH_COSMOS/````
+Run ```` cd gnoup/````
     ````./gnogetem.sh````
 
 After running the script go straight to #connect_to_your_gno_node and #explore in this readme.
