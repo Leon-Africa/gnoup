@@ -1,4 +1,4 @@
-# DRIFTING THROUH THE COSMOS
+# GNOUP
 
 Defacto setup for gnoland on cloud - next generation smart contract platform for social change.
 
