@@ -1,79 +1,62 @@
-# GNOUP
+# gnoup
 
 Defacto setup for gnoland on cloud - next generation smart contract platform for social change.
 
 # System Setup
+
+````git clone https://github.com/Leon-Africa/gnoup.git && cd gnoup````
+
+## Configure Credentials
+We will be using an automated role to allow you to securely deploy your Avail Node to your AWS account:
+
+- Go to AWS Console
+- In the console top right hand corner change region to eu-west-1 [Ireland]
+- Select Service > CloudFormation > Create stack > With new resources (standard).
+- Select upload template and upload the file gno_node_role.yml from this repo and follow the prompts to create the stack.
+- Once deployed select the newly created stack.
+- Go to the Outputs tab.
+- Note the value of the AccessKeyId and SecretAccessKey.
 
 ## Docker
 
 Please ensure that you have [Docker](https://www.docker.com/products/docker-desktop/) installed to use the preconfigure image which will setup all the dependancies and you can deploy from the container:
 
 
-````docker build --no-cache -t ubuntu_launcher .````
+````docker build -t gno-node-deployer .````
 
-````docker run -it --name launcher ubuntu_launcher /bin/bash```` 
+````docker run -it -w /home/gnoup --name gno-deployer gno-node-deployer```` 
 
-then go to the #deployment section in this readme.
-
-## Machine
-
-If you decide to use your machine instead of Docker - please ensure the following prequesites are installed on your system:
-
- 1. [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
- 2. [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
- 3. [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
- 4. [ssm manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html)
+NOTE: You will deploy and access your gno node from the Docker container.
 
 # Deployment
 
-For setup on aws:
+Automatically deploy the infrastructure and configuration as code for a fully running gno node with metrics and dashboards to your account from the Docker Container.
 
-````aws configure````
+````./deploy-gno-node.sh````
 
-Provide aws credentials that has the neccesary permissions.
+NOTE:
 
-i.e AWS console search IAM -> create an IAM user -> create an IAM group with Admin Policy attached -> Add the user to the group -> get the access and secret keys for the user [select user -> security credentials -> create access key]
+- when prompted for the AccessKey and SecretKey enter the values recieved from the Cloudformation deployment.
+- enter Default region name as eu-west-1 and Default output format as json
 
-Note: set region as ````eu-west-1```` and output as ````json````
+That's it you will now have a fully running gno Node in AWS with monitoring, observability and logging.
 
-## Auto
-
-Automatically deploy the infrastructure and configuration as code for a fully running gno node with metrics, dashboards and txtools to your account:
-
-Run ```` cd gnoup/````
-    ````./gnogetem.sh````
-
-After running the script go straight to #connect_to_your_gno_node and #explore in this readme.
-
-If you prefer to do things manually go to the #manual section in this readme.
-
-## Manual
-
-### Launch the infrastucture:
-
-````cd terraform/aws````
-
-````terraform init````
-
-````terraform plan````
-
-````terraform apply````
-
-### Apply the configuration to the infrastructure:
-
-````cd ansible````
-
-````ansible-galaxy install -r requirements.yml````
-
-````AWS_PROFILE=default ansible-playbook -i inventory/aws_ec2.yml playbooks/gno-node.yml --flush-cache -vvv````
 
 ### Connect to your Gnonode:
 
+You can connect to your node in 2 ways.
+
+1. From AWS Console [Make sure you change the region to eu-west-1 in the top right hand corner]
+
+Connect -> Session Manager -> Connect
+
+2. From the docker container:
+
 ````aws ssm start-session --target instance-id````
 
-Note: you can find your instance-id in the logs from running the ansible script [the blue color] or in the aws console.
+Note: you can find your instance-id in the aws console
 
-When your ssm session starts ensure that you:
+In both cases when your ssm session starts ensure that you:
 
 ````sudo su````
 
@@ -115,4 +98,15 @@ Note: Only accesible from the host machine you deployed from.
 
 # Clean up
 
-To clean up resources simply run ````terraform destroy```` from the ````terraform/aws```` directory.
+To clean up resources simply run ````terraform destroy```` from the ````terraform/aws directory````.
+
+Note: Do not delete your container before terraform destroy as your [state](https://developer.hashicorp.com/terraform/language/state) is in the container. If for some reason you have exited your container to access it start and access it with:
+
+````docker start gno-deployer````
+
+````docker exec -it gno-deployer /bin/bash````
+
+# Improvements
+Check the issues/project section for coming updates. 
+
+Please feel free to create an issue/s for any ideas/improvements/fixes/enhancements. 

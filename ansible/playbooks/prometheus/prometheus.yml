@@ -26,12 +26,16 @@ scrape_configs:
     # scheme defaults to 'http'.
 
     static_configs:
-      - targets: ["localhost:9090"]
+      - targets: ["localhost:8090"]
 
  # Add your Go program as a scrape target
-  - job_name: "txtools"
+  # - job_name: "txtools"
+  #   static_configs:
+  #     - targets: ["localhost:7770"]
+
+  - job_name: 'opentelemetry'
     static_configs:
-      - targets: ["localhost:7770"]
+      - targets: [ 'localhost:8090' ]
 
   - job_name: "node-exporter"
     dns_sd_configs:

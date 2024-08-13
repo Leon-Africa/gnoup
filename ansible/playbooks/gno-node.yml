@@ -17,7 +17,7 @@
   vars:
     ansible_connection: aws_ssm
     ansible_aws_ssm_profile: default
-    ansible_aws_ssm_bucket_name: gno-node-aws-ssm-connection-playbook
+    ansible_aws_ssm_bucket_name: gno-aws-ssm-connection-playbook
     ansible_aws_ssm_region: "eu-west-1"
   tasks:
     - name: pinging
@@ -195,7 +195,11 @@
     - name: Start Node
       shell: |
         cd ../../../../home/
-        /usr/local/go/bin/gnoland start >> /home/logs/node/node.log 2>&1 &
+        /usr/local/go/bin/gnoland config init --config-path /gnoroot/gnoland-data/config/config.toml
+        /usr/local/go/bin/gnoland config set --config-path /gnoroot/gnoland-data/config/config.toml rpc.laddr tcp://0.0.0.0:26657
+        /usr/local/go/bin/gnoland config set --config-path /gnoroot/gnoland-data/config/config.toml telemetry.enabled true
+        /usr/local/go/bin/gnoland config set --config-path /gnoroot/gnoland-data/config/config.toml telemetry.exporter_endpoint collector:4317
+        /usr/local/go/bin/gnoland start start --lazy >> /home/logs/node/node.log 2>&1 &
       register: result_start_node
 
     - name: Check if directory exists [tx-indexer]
@@ -311,6 +315,26 @@
         sudo systemctl status node_exporter
       register: result_node_exporter_install
 
+    - name: Download OpenTelemetry Collector Contrib deb package
+      get_url:
+        url: https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.104.0/otelcol-contrib_0.104.0_linux_amd64.deb
+        dest: /tmp/otelcol-contrib_0.104.0_linux_amd64.deb
+
+    - name: Install OpenTelemetry Collector Contrib deb package
+      apt:
+        deb: /tmp/otelcol-contrib_0.104.0_linux_amd64.deb
+        state: present
+
+    - name: Copy OpenTelemetry Collector config
+      copy:
+        src: otel/config.yml
+        dest: /etc/otelcol-contrib/config.yaml
+
+    - name: Restart the otelcol-contrib service to apply changes
+      systemd:
+        name: otelcol-contrib
+        state: restarted
+
     - name: Install Grafana
       shell: |
         cd ../../../../
@@ -328,18 +352,21 @@
         src:  grafana/datasource.yml
         dest: /etc/grafana/provisioning/datasources/datasource.yml
 
-    - name: Transfer dashboard.json to remote host
+    - name: Transfer dashboards.yml to remote host
       copy:
-        src:  grafana/dashboard.json
-        dest: /etc/grafana/provisioning/dashboards
+        src: grafana/dashboards.yml
+        dest: /etc/grafana/provisioning/dashboards/dashboards.yml
 
-    - name: Transfer dashboard.json to remote host
+    - name: Transfer Grafana dashboards to remote host
       copy:
-        src:  grafana/15172_rev6.json
-        dest: /etc/grafana/provisioning/dashboards
-
+        src: "{{ item }}"
+        dest: /etc/grafana/provisioning/dashboards/
+      loop:
+        - grafana/dashboard.json
+        - grafana/node_exporter.json
+  
     - name: Stop and Start Grafana
       shell: |
         sudo systemctl stop grafana-server
         sudo systemctl start grafana-server
-      register: result_grafana_sop_start
+      register: result_grafana_stop_start
