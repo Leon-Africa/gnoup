@@ -1,3 +1,5 @@
+[NOTE: THIS IS AN EC2 FOCUSSED DEPLOYMENT]
+
 # gnoup
 
 Defacto setup for gnoland on cloud - next generation smart contract platform for social change.
