@@ -56,6 +56,6 @@ ansible-galaxy install -r requirements.yml
 echo "Initiating Configuration"
 
 # Configure the node using Ansible with the dynamic inventory
-AWS_PROFILE=default ansible-playbook -i inventory/aws_ec2.yml playbooks/avail-full-node.yml --extra-vars "ssm_bucket_name=$(cat ssm_bucket_name.txt)" --flush-cache -vvv
+AWS_PROFILE=default ansible-playbook -i inventory/aws_ec2.yml playbooks/gno-node.yml --extra-vars "ssm_bucket_name=$(cat ssm_bucket_name.txt)" --flush-cache -vvv
 
 echo "gno Node Deployment complete!"
