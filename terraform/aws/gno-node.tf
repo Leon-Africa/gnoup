@@ -13,7 +13,7 @@ provider "aws" {
 
 # Fetch public IP address of the host machine using the ifconfig.me service
 data "http" "public_ip" {
-  url = "http://ifconfig.me"
+  url = "http://ifconfig.me/ip"
 }
 
 # Create VPC
@@ -81,7 +81,7 @@ resource "aws_security_group" "gno_node_sg" {
     from_port   = 9090
     to_port     = 9090
     protocol    = "tcp"
-    cidr_blocks = ["${data.http.public_ip.body}/32"]
+    cidr_blocks = ["${chomp(data.http.public_ip.response_body)}/32"]
   }
 
   # Inbound rule to allow traffic on port 3100 from the public IP of the host machine [to access Loki UI]
@@ -89,7 +89,7 @@ resource "aws_security_group" "gno_node_sg" {
     from_port   = 3100
     to_port     = 3100
     protocol    = "tcp"
-    cidr_blocks = ["${data.http.public_ip.body}/32"]
+    cidr_blocks = ["${chomp(data.http.public_ip.response_body)}/32"]
   }
 
   # Inbound rule to allow traffic on port 3000 from the public IP of the host machine [to access Grafana UI]
@@ -97,7 +97,7 @@ resource "aws_security_group" "gno_node_sg" {
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
-    cidr_blocks = ["${data.http.public_ip.body}/32"]
+    cidr_blocks = ["${chomp(data.http.public_ip.response_body)}/32"]
   }
 }
 
