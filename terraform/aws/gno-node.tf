@@ -198,7 +198,7 @@ resource "random_id" "bucket_suffix" {
 }
 
 resource "aws_s3_bucket" "ssm_bucket" {
-  bucket = "avail-node-aws-ssm-connection-playbook-${random_id.bucket_suffix.hex}"
+  bucket = "gno-node-aws-ssm-connection-playbook-${random_id.bucket_suffix.hex}"
 
   tags = {
     Name = "SSM Connection Bucket"
