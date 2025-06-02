@@ -13,7 +13,7 @@ provider "aws" {
 
 # Fetch public IP address of the host machine using the ifconfig.me service
 data "http" "public_ip" {
-  url = "http://ifconfig.me/ip"
+  url = "http://checkip.amazonaws.com/"
 }
 
 # Create VPC
@@ -103,12 +103,12 @@ resource "aws_security_group" "gno_node_sg" {
 
 # AWS SSM Role
 resource "aws_iam_instance_profile" "ssm_profile" {
-  name = "EC2SSM"
+  name = "EC2SSM_GNO"
   role = aws_iam_role.ssm_role.name
 }
 
 resource "aws_iam_role" "ssm_role" {
-  name               = "EC2SSM"
+  name               = "EC2SSM_GNO"
   description        = "EC2 SSM Role"
   assume_role_policy = <<EOF
 {
@@ -192,9 +192,13 @@ resource "aws_volume_attachment" "gno_node" {
   force_detach = false
 }
 
-# Create S3 Bucket
+# Create S3 Bucket with unique name
+resource "random_id" "bucket_suffix" {
+  byte_length = 4
+}
+
 resource "aws_s3_bucket" "ssm_bucket" {
-  bucket = "gno-aws-ssm-connection-playbook"
+  bucket = "avail-node-aws-ssm-connection-playbook-${random_id.bucket_suffix.hex}"
 
   tags = {
     Name = "SSM Connection Bucket"
@@ -203,6 +207,11 @@ resource "aws_s3_bucket" "ssm_bucket" {
   lifecycle {
     prevent_destroy = false
   }
+}
+
+# Output the bucket name
+output "ssm_bucket_name" {
+  value = aws_s3_bucket.ssm_bucket.bucket
 }
 
 # Null resource to empty the S3 bucket before deletion

@@ -17,11 +17,15 @@
   vars:
     ansible_connection: aws_ssm
     ansible_aws_ssm_profile: default
-    ansible_aws_ssm_bucket_name: gno-aws-ssm-connection-playbook
+    ansible_aws_ssm_bucket_name: "{{ ssm_bucket_name }}"
     ansible_aws_ssm_region: "eu-west-1"
   tasks:
     - name: pinging
       ping:
+
+    - name: Display SSM bucket name [Generated]Add commentMore actions
+      debug:
+        msg: "SSM bucket name is {{ ansible_aws_ssm_bucket_name }}"
 
     - name: Go
       shell: |
