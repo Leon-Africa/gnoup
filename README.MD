@@ -2,14 +2,14 @@
 
 # gnoup
 
-Defacto setup for gnoland on cloud - next generation smart contract platform for social change.
+Defacto setup for gno.land on cloud - next generation smart contract platform for social change.
 
 # System Setup
 
 ````git clone https://github.com/Leon-Africa/gnoup.git && cd gnoup````
 
 ## Configure Credentials
-We will be using an automated role to allow you to securely deploy your Avail Node to your AWS account:
+We will be using an automated role to allow you to securely deploy your gno.land node to your AWS account:
 
 - Go to AWS Console
 - In the console top right hand corner change region to eu-west-1 [Ireland]
@@ -28,11 +28,11 @@ Please ensure that you have [Docker](https://www.docker.com/products/docker-desk
 
 ````docker run -it -w /home/gnoup --name gno-deployer gno-node-deployer```` 
 
-NOTE: You will deploy and access your gno node from the Docker container.
+NOTE: You will deploy and access your gno.land node from the Docker container.
 
 # Deployment
 
-Automatically deploy the infrastructure and configuration as code for a fully running gno node with metrics and dashboards to your account from the Docker Container.
+Automatically deploy the infrastructure and configuration as code for a fully running gno.land node with metrics and dashboards to your account from the Docker Container.
 
 ````./deploy-gno-node.sh````
 
@@ -41,10 +41,10 @@ NOTE:
 - when prompted for the AccessKey and SecretKey enter the values recieved from the Cloudformation deployment.
 - enter Default region name as eu-west-1 and Default output format as json
 
-That's it you will now have a fully running gno Node in AWS with monitoring, observability and logging.
+That's it you will now have a fully running gno.land node in AWS with monitoring, observability and logging.
 
 
-### Connect to your Gnonode:
+### Connect to your gno.land node:
 
 You can connect to your node in 2 ways.
 
@@ -82,7 +82,7 @@ The directories in logs are arranged as follows:
 
 ````txtools [txtools.log]````
 
-So if you want to get log data for the running gnoland node: 
+So if you want to get log data for the running gno.land node: 
 
 ````tail -f logs/node/node.log````
 
