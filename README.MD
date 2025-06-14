@@ -5,7 +5,7 @@
 Defacto setup for gno.land on AWS EC2
 
 # Summary Video
-https://youtu.be/PHK2zmtaH8c
+[![Watch the video](https://img.youtube.com/vi/PHK2zmtaH8c/0.jpg)](https://youtu.be/PHK2zmtaH8c)
 
 # System Setup
 
