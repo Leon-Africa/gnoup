@@ -4,6 +4,9 @@
 
 Defacto setup for gno.land on AWS EC2
 
+# Summary Video
+https://youtu.be/PHK2zmtaH8c
+
 # System Setup
 
 ````git clone https://github.com/Leon-Africa/gnoup.git && cd gnoup````
