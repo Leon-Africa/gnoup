@@ -2,7 +2,7 @@
 
 # gnoup
 
-Defacto setup for gno.land on cloud - next generation smart contract platform for social change.
+Defacto setup for gno.land on AWS EC2
 
 # System Setup
 
