@@ -271,16 +271,16 @@
         make build
       register: result_supernova_build
 
-    - name: Run SuperNova [using mnemonic]
-      shell: 
-        cmd: |
-          cd ../../../../home/
-          export GOPATH=/usr/local/go
-          export PATH=$GOPATH/bin:$PATH
-          cd supernova/
-          ./build/supernova -sub-accounts {{ supernova_sub_accounts }} -transactions {{ supernova_transactions }} -url {{ supernova_url }} -mnemonic "{{ supernova_mnemonic }}" -output {{ supernova_output }}
-      args:
-        executable: /bin/bash
+    # - name: Run SuperNova [using mnemonic]
+    #   shell: 
+    #     cmd: |
+    #       cd ../../../../home/
+    #       export GOPATH=/usr/local/go
+    #       export PATH=$GOPATH/bin:$PATH
+    #       cd supernova/
+    #       ./build/supernova -sub-accounts {{ supernova_sub_accounts }} -transactions {{ supernova_transactions }} -url {{ supernova_url }} -mnemonic "{{ supernova_mnemonic }}" -output {{ supernova_output }}
+    #   args:
+    #     executable: /bin/bash
 
     - name: Install and Start Node Exporter
       shell: |
